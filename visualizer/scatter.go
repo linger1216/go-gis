@@ -5,23 +5,22 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/linger1216/go-gis/geom"
-	"math"
 	"os"
 )
 
-func generateScatterItems(lineString *geom.LineString) []opts.ScatterData {
-	data := make([]opts.ScatterData, len(lineString.Coordinates))
-	for i := range lineString.Coordinates {
+func generateScatterItems(coords ...*geom.LngLat) []opts.ScatterData {
+	data := make([]opts.ScatterData, len(coords))
+	for i := range coords {
 		data[i] = opts.ScatterData{
-			Name:       fmt.Sprintf("%f,%f", lineString.Coordinates[i].Longitude, lineString.Coordinates[i].Latitude),
-			Value:      []float64{lineString.Coordinates[i].Latitude, lineString.Coordinates[i].Longitude},
+			Name:       fmt.Sprintf("%f,%f", coords[i].Longitude, coords[i].Latitude),
+			Value:      []float64{coords[i].Latitude, coords[i].Longitude},
 			SymbolSize: 20,
 		}
 	}
 	return data
 }
 
-func DrawScatter(width, height int, filename string, epsilon float64, lineString *geom.LineString) {
+func DrawScatter(width, height int, outputFilename, title string, coords ...*geom.LngLat) {
 
 	if width == 0 {
 		width = 1800
@@ -31,33 +30,15 @@ func DrawScatter(width, height int, filename string, epsilon float64, lineString
 		height = 900
 	}
 
-	if len(filename) == 0 {
-		filename = "scatter.html"
+	if len(outputFilename) == 0 {
+		outputFilename = "scatter.html"
 	}
 
-	lngMin := math.MaxFloat64
-	lngMax := float64(0)
-	latMin := math.MaxFloat64
-	latMax := float64(0)
-
-	for i := range lineString.Coordinates {
-
-		if lineString.Coordinates[i].Latitude > latMax {
-			latMax = lineString.Coordinates[i].Latitude
-		}
-
-		if lineString.Coordinates[i].Latitude < latMin {
-			latMin = lineString.Coordinates[i].Latitude
-		}
-
-		if lineString.Coordinates[i].Longitude > lngMax {
-			lngMax = lineString.Coordinates[i].Longitude
-		}
-
-		if lineString.Coordinates[i].Longitude < lngMin {
-			lngMin = lineString.Coordinates[i].Longitude
-		}
-	}
+	box := geom.BoundingRect(coords...)
+	lngMin := box.LeftBottom.Longitude
+	lngMax := box.RightTop.Longitude
+	latMin := box.LeftBottom.Latitude
+	latMax := box.RightTop.Latitude
 
 	scatter := charts.NewScatter()
 	scatter.SetGlobalOptions(
@@ -66,7 +47,7 @@ func DrawScatter(width, height int, filename string, epsilon float64, lineString
 			Height: fmt.Sprintf("%dpx", height),
 		}),
 		charts.WithTitleOpts(opts.Title{
-			Title: fmt.Sprintf("xy visualizer %d points with epsilon:%f", len(lineString.Coordinates), epsilon),
+			Title: title,
 		}),
 		charts.WithTooltipOpts(opts.Tooltip{
 			Show: true,
@@ -117,8 +98,8 @@ func DrawScatter(width, height int, filename string, epsilon float64, lineString
 			},
 		),
 	)
-	scatter.AddSeries("xy", generateScatterItems(lineString))
-	f, err := os.Create(filename)
+	scatter.AddSeries("xy", generateScatterItems(coords...))
+	f, err := os.Create(outputFilename)
 	if err != nil {
 		panic(err)
 	}

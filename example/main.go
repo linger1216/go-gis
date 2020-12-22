@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
 	"github.com/linger1216/go-gis/geom"
 	"github.com/linger1216/go-gis/track"
 	"github.com/linger1216/go-gis/visualizer"
@@ -39,10 +40,20 @@ func main() {
 		}
 	}
 
-	ops := &track.SimplifyOption{
-		Degree: 0.000006,
+	degrees := make([]float64, 0)
+	for i := 1; i <= 5; i++ {
+		degrees = append(degrees, float64(i))
 	}
-	visualizer.DrawScatter(1800, 900, "scatter.html", 0, geom.NewLineString(xys...))
-	simple := track.Simplify(ops, geom.NewLineString(xys...))
-	visualizer.DrawScatter(1800, 900, "scatter_simple.html", ops.Degree, simple)
+	for i := range degrees {
+		ops := &track.SimplifyOption{
+			Degree: degrees[i],
+		}
+		visualizer.DrawScatter(1200, 700, "scatter.html",
+			fmt.Sprintf("visualizer %d points", len(xys)), xys...)
+		simple := track.Simplify(ops, xys...)
+
+		visualizer.DrawScatter(1200, 700, "scatter_simple.html",
+			fmt.Sprintf("visualizer %d points with epsilon:%f", len(simple), ops.Degree), simple...)
+		fmt.Printf("degress:%f origin:%d current:%d\n", degrees[i], len(xys), len(simple))
+	}
 }

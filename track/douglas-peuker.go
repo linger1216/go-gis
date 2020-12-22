@@ -2,6 +2,7 @@ package track
 
 import (
 	"github.com/linger1216/go-gis/geom"
+	"github.com/linger1216/go-utils/algorithm"
 	"math"
 )
 
@@ -28,14 +29,29 @@ func findPerpendicularDistance(p, p1, p2 *geom.LngLat) (result float64) {
 	return
 }
 
-func Simplify(ops *SimplifyOption, line *geom.LineString) *geom.LineString {
-	coords := _simplify(ops.Degree, line.Coordinates...)
-	return &geom.LineString{
-		Coordinates: coords,
+func Simplify(ops *SimplifyOption, coords ...*geom.LngLat) []*geom.LngLat {
+	epsilon := _transEpsilon(int(ops.Degree))
+	return _douglasPeucker(epsilon, coords...)
+}
+
+func _transEpsilon(level int) float64 {
+	switch level {
+	case 1:
+		return 0.000003
+	case 2:
+		return 0.000010
+	case 3:
+		return 0.000020
+	case 4:
+		return 0.000050
+	case 5:
+		return 0.000100
+	default:
+		return 0.000010
 	}
 }
 
-func _simplify(epsilon float64, coords ...*geom.LngLat) []*geom.LngLat {
+func _douglasPeuckerRecursion(epsilon float64, coords ...*geom.LngLat) []*geom.LngLat {
 	if len(coords) < 3 {
 		return coords
 	}
@@ -53,8 +69,8 @@ func _simplify(epsilon float64, coords ...*geom.LngLat) []*geom.LngLat {
 	if dist > epsilon {
 		l1 := coords[0 : index+1]
 		l2 := coords[index:]
-		r1 := _simplify(epsilon, l1...)
-		r2 := _simplify(epsilon, l2...)
+		r1 := _douglasPeuckerRecursion(epsilon, l1...)
+		r2 := _douglasPeuckerRecursion(epsilon, l2...)
 		rs := append(r1[0:len(r1)-1], r2...)
 		return rs
 	} else {
@@ -62,4 +78,57 @@ func _simplify(epsilon float64, coords ...*geom.LngLat) []*geom.LngLat {
 		ret = append(ret, firstPoint, lastPoint)
 		return ret
 	}
+}
+
+func _douglasPeucker(epsilon float64, coords ...*geom.LngLat) []*geom.LngLat {
+	if len(coords) < 3 {
+		return coords
+	}
+	var size = len(coords)
+	markers := make([]int, size)
+	first := 0
+	last := size - 1
+
+	stack := algorithm.Stack(make([]interface{}, 0))
+	i, index := 0, 0
+	maxDistance, distance := float64(0), float64(0)
+	markers[first], markers[last] = 1, 1
+	stack.Push(first)
+	stack.Push(last)
+
+	for !stack.IsEmpty() {
+		if v, err := stack.Pop(); err == nil {
+			last = v.(int)
+		} else {
+			break
+		}
+		if v, err := stack.Pop(); err == nil {
+			first = v.(int)
+		} else {
+			break
+		}
+		maxDistance = 0
+		for i = first + 1; i < last; i++ {
+			distance = findPerpendicularDistance(coords[i], coords[first], coords[last])
+			if distance > maxDistance {
+				index = i
+				maxDistance = distance
+			}
+		}
+
+		if maxDistance > epsilon {
+			markers[index] = 1
+			stack.Push(first)
+			stack.Push(index)
+			stack.Push(index)
+			stack.Push(last)
+		}
+	}
+	ret := make([]*geom.LngLat, 0, size)
+	for i = 0; i < size; i++ {
+		if markers[i] > 0 {
+			ret = append(ret, coords[i])
+		}
+	}
+	return ret
 }
