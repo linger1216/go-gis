@@ -7,24 +7,24 @@ type Box struct {
 	RightTop   *LngLat `protobuf:"bytes,2,opt,name=right_top,json=rightTop,proto3" json:"rightTop,omitempty"`
 }
 
-func BoundingRect(coords ...*LngLat) *Box {
+func BoundingRect(coords ...Pointer) *Box {
 	lngMin := math.MaxFloat64
 	lngMax := float64(0)
 	latMin := math.MaxFloat64
 	latMax := float64(0)
 
 	for i := range coords {
-		if coords[i].Latitude > latMax {
-			latMax = coords[i].Latitude
+		if coords[i].Point().Latitude > latMax {
+			latMax = coords[i].Point().Latitude
 		}
-		if coords[i].Latitude < latMin {
-			latMin = coords[i].Latitude
+		if coords[i].Point().Latitude < latMin {
+			latMin = coords[i].Point().Latitude
 		}
-		if coords[i].Longitude > lngMax {
-			lngMax = coords[i].Longitude
+		if coords[i].Point().Longitude > lngMax {
+			lngMax = coords[i].Point().Longitude
 		}
-		if coords[i].Longitude < lngMin {
-			lngMin = coords[i].Longitude
+		if coords[i].Point().Longitude < lngMin {
+			lngMin = coords[i].Point().Longitude
 		}
 	}
 	return &Box{

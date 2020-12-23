@@ -17,13 +17,13 @@ type SimplifyOption struct {
 // 公式:
 // https://zhuanlan.zhihu.com/p/26307123
 // https://baike.baidu.com/item/%E4%B8%A4%E7%82%B9%E5%BC%8F
-func _perpendicularDistance(p, p1, p2 *geom.LngLat) (result float64) {
-	if p1.Latitude == p2.Latitude {
-		result = math.Abs(p.Latitude - p1.Latitude)
+func _perpendicularDistance(p, p1, p2 geom.Pointer) (result float64) {
+	if p1.Point().Latitude == p2.Point().Latitude {
+		result = math.Abs(p.Point().Latitude - p1.Point().Latitude)
 	} else {
-		slope := (p2.Longitude - p1.Longitude) / (p2.Latitude - p1.Latitude)
-		intercept := p1.Longitude - (slope * p1.Latitude)
-		result = math.Abs(slope*p.Latitude-p.Longitude+intercept) / math.Sqrt(math.Pow(slope, 2)+1)
+		slope := (p2.Point().Longitude - p1.Point().Longitude) / (p2.Point().Latitude - p1.Point().Latitude)
+		intercept := p1.Point().Longitude - (slope * p1.Point().Latitude)
+		result = math.Abs(slope*p.Point().Latitude-p.Point().Longitude+intercept) / math.Sqrt(math.Pow(slope, 2)+1)
 	}
 	return
 }
@@ -43,9 +43,8 @@ degress:6 total:937 current:53
 degress:7 total:937 current:29
 *
 */
-func Simplify(ops *SimplifyOption, coords ...*geom.LngLat) []*geom.LngLat {
-	epsilon := _transEpsilon(int(ops.Degree))
-	return _douglasPeucker(epsilon, coords...)
+func Simplify(ops *SimplifyOption, coords ...geom.Pointer) []geom.Pointer {
+	return _douglasPeucker(_transEpsilon(int(ops.Degree)), coords...)
 }
 
 func _transEpsilon(level int) float64 {
@@ -69,7 +68,7 @@ func _transEpsilon(level int) float64 {
 	}
 }
 
-func _douglasPeuckerRecursion(epsilon float64, coords ...*geom.LngLat) []*geom.LngLat {
+func _douglasPeuckerRecursion(epsilon float64, coords ...geom.Pointer) []geom.Pointer {
 	if len(coords) < 3 {
 		return coords
 	}
@@ -92,13 +91,13 @@ func _douglasPeuckerRecursion(epsilon float64, coords ...*geom.LngLat) []*geom.L
 		rs := append(r1[0:len(r1)-1], r2...)
 		return rs
 	} else {
-		ret := make([]*geom.LngLat, 0)
+		ret := make([]geom.Pointer, 0)
 		ret = append(ret, firstPoint, lastPoint)
 		return ret
 	}
 }
 
-func _douglasPeucker(epsilon float64, coords ...*geom.LngLat) []*geom.LngLat {
+func _douglasPeucker(epsilon float64, coords ...geom.Pointer) []geom.Pointer {
 	if len(coords) < 3 {
 		return coords
 	}
@@ -142,7 +141,7 @@ func _douglasPeucker(epsilon float64, coords ...*geom.LngLat) []*geom.LngLat {
 			stack.Push(last)
 		}
 	}
-	ret := make([]*geom.LngLat, 0, size)
+	ret := make([]geom.Pointer, 0, size)
 	for i = 0; i < size; i++ {
 		if markers[i] > 0 {
 			ret = append(ret, coords[i])

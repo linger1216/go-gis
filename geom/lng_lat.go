@@ -6,6 +6,18 @@ type LngLat struct {
 	Altitude  float64
 }
 
+func (l *LngLat) ID() string {
+	return ""
+}
+
+func (l *LngLat) Point() *LngLat {
+	return l
+}
+
+func (l *LngLat) Timestamp() int64 {
+	return 0
+}
+
 func NewLngLat(coordinates ...float64) *LngLat {
 	length := len(coordinates)
 	switch length {

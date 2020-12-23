@@ -8,10 +8,10 @@ import (
 	"github.com/linger1216/go-gis/geom"
 )
 
-func generateScatterItems(coords ...geom.Pointer) []opts.ScatterData {
-	data := make([]opts.ScatterData, len(coords))
+func generateLineItems(coords ...geom.Pointer) []opts.LineData {
+	data := make([]opts.LineData, len(coords))
 	for i := range coords {
-		data[i] = opts.ScatterData{
+		data[i] = opts.LineData{
 			Name:       fmt.Sprintf("%d", i),
 			Value:      []float64{coords[i].Point().Latitude, coords[i].Point().Longitude},
 			SymbolSize: 10,
@@ -20,7 +20,7 @@ func generateScatterItems(coords ...geom.Pointer) []opts.ScatterData {
 	return data
 }
 
-func DrawScatter(width, height int, title string, coords ...geom.Pointer) components.Charter {
+func DrawLine(width, height int, title string, coords ...geom.Pointer) components.Charter {
 
 	if width == 0 {
 		width = 1800
@@ -36,8 +36,8 @@ func DrawScatter(width, height int, title string, coords ...geom.Pointer) compon
 	latMin := box.LeftBottom.Latitude
 	latMax := box.RightTop.Latitude
 
-	scatter := charts.NewScatter()
-	scatter.SetGlobalOptions(
+	Line := charts.NewLine()
+	Line.SetGlobalOptions(
 		charts.WithInitializationOpts(opts.Initialization{
 			Width:  fmt.Sprintf("%dpx", width),
 			Height: fmt.Sprintf("%dpx", height),
@@ -95,6 +95,6 @@ func DrawScatter(width, height int, title string, coords ...geom.Pointer) compon
 			},
 		),
 	)
-	scatter.AddSeries("xy", generateScatterItems(coords...))
-	return scatter
+	Line.AddSeries("xy", generateLineItems(coords...))
+	return Line
 }

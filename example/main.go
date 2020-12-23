@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/linger1216/go-gis/geom"
 	"github.com/linger1216/go-gis/track"
 	"github.com/linger1216/go-gis/visualizer"
@@ -15,7 +16,7 @@ func main() {
 
 	count := 0
 	jump := 6
-	filename := "/Users/lid/Downloads/Geolife Trajectories 1.3/Data/070/Trajectory/20081002003702.plt"
+	filename := "res/20080914080824.plt"
 	f, err := os.OpenFile(filename, os.O_RDONLY, 0644)
 	if err != nil {
 		panic(err)
@@ -43,21 +44,38 @@ func main() {
 	}
 	_ = f.Close()
 
+	points := make([]geom.Pointer, len(xys))
+	for i := range xys {
+		points[i] = xys[i]
+	}
+
 	degrees := make([]float64, 0)
 	for i := 1; i <= 7; i++ {
 		degrees = append(degrees, float64(i))
 	}
 
-	visualizer.DrawScatter(1200, 700, "scatter.html",
-		fmt.Sprintf("visualizer %d points", len(xys)), xys...)
+	width := 600
+	height := 400
+
+	page := components.NewPage()
+	page.SetLayout(components.PageFlexLayout)
+	// draw
+	origin := visualizer.DrawLine(width, height, fmt.Sprintf("visualizer %d points", len(xys)), points...)
+
+	page.AddCharts(origin)
 
 	for i := range degrees {
 		ops := &track.SimplifyOption{
 			Degree: degrees[i],
 		}
-		simple := track.Simplify(ops, xys...)
-		visualizer.DrawScatter(1200, 700, fmt.Sprintf("scatter_simplify_%d.html", int(degrees[i])),
-			fmt.Sprintf("visualizer %d points with epsilon:%f", len(simple), ops.Degree), simple...)
+		simple := track.Simplify(ops, points...)
+		page.AddCharts(visualizer.DrawLine(width, height, fmt.Sprintf("visualizer %d points with epsilon:%f",
+			len(simple), ops.Degree), simple...))
 		fmt.Printf("degress:%f origin:%d current:%d\n", degrees[i], len(xys), len(simple))
 	}
+	pageFile, err := os.Create("page.html")
+	if err != nil {
+		panic(err)
+	}
+	_ = page.Render(pageFile)
 }
