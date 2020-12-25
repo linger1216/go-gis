@@ -5,7 +5,6 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/opts"
-	"github.com/linger1216/go-gis/geom"
 	"github.com/linger1216/go-gis/hub"
 )
 
@@ -31,7 +30,7 @@ func DrawLine(width, height int, title string, coords ...hub.TrackPointer) compo
 		height = 900
 	}
 
-	box := geom.BoundingRect(coords...)
+	box := hub.BoundingRect(coords...)
 	lngMin := box.LeftBottom.Longitude
 	lngMax := box.RightTop.Longitude
 	latMin := box.LeftBottom.Latitude
