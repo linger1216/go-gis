@@ -6,9 +6,10 @@ import (
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/linger1216/go-gis/geom"
+	"github.com/linger1216/go-gis/hub"
 )
 
-func generateLineItems(coords ...geom.Pointer) []opts.LineData {
+func generateLineItems(coords ...hub.TrackPointer) []opts.LineData {
 	data := make([]opts.LineData, len(coords))
 	for i := range coords {
 		data[i] = opts.LineData{
@@ -20,7 +21,7 @@ func generateLineItems(coords ...geom.Pointer) []opts.LineData {
 	return data
 }
 
-func DrawLine(width, height int, title string, coords ...geom.Pointer) components.Charter {
+func DrawLine(width, height int, title string, coords ...hub.TrackPointer) components.Charter {
 
 	if width == 0 {
 		width = 1800

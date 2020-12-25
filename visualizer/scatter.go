@@ -6,9 +6,10 @@ import (
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/linger1216/go-gis/geom"
+	"github.com/linger1216/go-gis/hub"
 )
 
-func generateScatterItems(coords ...geom.Pointer) []opts.ScatterData {
+func generateScatterItems(coords ...hub.TrackPointer) []opts.ScatterData {
 	data := make([]opts.ScatterData, len(coords))
 	for i := range coords {
 		data[i] = opts.ScatterData{
@@ -20,7 +21,7 @@ func generateScatterItems(coords ...geom.Pointer) []opts.ScatterData {
 	return data
 }
 
-func DrawScatter(width, height int, title string, coords ...geom.Pointer) components.Charter {
+func DrawScatter(width, height int, title string, coords ...hub.TrackPointer) components.Charter {
 
 	if width == 0 {
 		width = 1800

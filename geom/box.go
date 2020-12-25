@@ -1,13 +1,16 @@
 package geom
 
-import "math"
+import (
+	"github.com/linger1216/go-gis/hub"
+	"math"
+)
 
 type Box struct {
 	LeftBottom *LngLat `protobuf:"bytes,1,opt,name=left_bottom,json=leftBottom,proto3" json:"leftBottom,omitempty"`
 	RightTop   *LngLat `protobuf:"bytes,2,opt,name=right_top,json=rightTop,proto3" json:"rightTop,omitempty"`
 }
 
-func BoundingRect(coords ...Pointer) *Box {
+func BoundingRect(coords ...hub.TrackPointer) *Box {
 	lngMin := math.MaxFloat64
 	lngMax := float64(0)
 	latMin := math.MaxFloat64

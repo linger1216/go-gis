@@ -4,8 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/go-echarts/go-echarts/v2/components"
+	"github.com/linger1216/go-gis/algo/track"
 	"github.com/linger1216/go-gis/geom"
-	"github.com/linger1216/go-gis/track"
+	"github.com/linger1216/go-gis/hub"
 	"github.com/linger1216/go-gis/visualizer"
 	"github.com/linger1216/go-utils/convert"
 	"os"
@@ -44,7 +45,7 @@ func main() {
 	}
 	_ = f.Close()
 
-	points := make([]geom.Pointer, len(xys))
+	points := make([]hub.TrackPointer, len(xys))
 	for i := range xys {
 		points[i] = xys[i]
 	}
