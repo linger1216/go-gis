@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bufio"
+	"encoding/csv"
 	"fmt"
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/linger1216/go-gis/algo/track"
@@ -9,40 +9,50 @@ import (
 	"github.com/linger1216/go-gis/hub"
 	"github.com/linger1216/go-gis/visualizer"
 	"github.com/linger1216/go-utils/convert"
+	"io"
 	"os"
-	"strings"
 )
 
 func main() {
 
 	count := 0
-	jump := 6
-	filename := "res/20080914080824.plt"
+	// control
+	filename := "res/2000.csv"
+	latIndex := 0
+	lngIndex := 1
+	jump := 0
+	visualizerFilename := "douglas-peuker.html"
+
 	f, err := os.OpenFile(filename, os.O_RDONLY, 0644)
 	if err != nil {
 		panic(err)
 	}
-	r := bufio.NewReaderSize(f, 4096)
 	xys := make([]*geom.LngLat, 0)
 
+	reader := csv.NewReader(f)
+	reader.LazyQuotes = true
 	for {
-		l, e := r.ReadBytes('\n')
-		if e != nil && len(l) == 0 {
+		line, err := reader.Read()
+		if err == io.EOF {
 			break
+		}
+		if err != nil {
+			panic(err)
 		}
 
 		count++
 		if count <= jump {
 			continue
 		}
-		line := strings.Split(string(l), ",")
+
 		if len(line) >= 0 {
 			xys = append(xys, &geom.LngLat{
-				Latitude:  convert.StringToFloat(line[0]),
-				Longitude: convert.StringToFloat(line[1]),
+				Latitude:  convert.StringToFloat(line[latIndex]),
+				Longitude: convert.StringToFloat(line[lngIndex]),
 			})
 		}
 	}
+
 	_ = f.Close()
 
 	points := make([]hub.TrackPointer, len(xys))
@@ -74,7 +84,7 @@ func main() {
 			len(simple), ops.Degree), simple...))
 		fmt.Printf("degress:%f origin:%d current:%d\n", degrees[i], len(xys), len(simple))
 	}
-	pageFile, err := os.Create("page.html")
+	pageFile, err := os.Create(visualizerFilename)
 	if err != nil {
 		panic(err)
 	}

@@ -7,7 +7,7 @@ import (
 
 type KalManFilter struct {
 	statePre            *mat.Dense     //!< predicted state (x'(k)): x(k)=A*x(k-1)+B*u(k)
-	StatePost           *mat.Dense     //!< corrected state (x(k)): x(k)=x'(k)+K(k)*(z(k)-H*x'(k))
+	statePost           *mat.Dense     //!< corrected state (x(k)): x(k)=x'(k)+K(k)*(z(k)-H*x'(k))
 	TransitionMatrix    *mat.Dense     //!< state transition matrix (A)
 	ControlMatrix       *mat.Dense     //!< control matrix (B) (not used if there is no control)
 	MeasurementMatrix   *mat.Dense     //!< measurement matrix (H)
@@ -33,7 +33,7 @@ func MakeMatValue(row, col int, v float64) []float64 {
 	return ret
 }
 
-func NewKalManFilter(dynamParams, measureParams, controlParams int) *KalManFilter {
+func NewKalManFilter(dynamParams, measureParams, controlParams int, initState *mat.Dense) *KalManFilter {
 
 	if dynamParams <= 0 || measureParams <= 0 {
 		panic("todo error 1")
@@ -41,7 +41,10 @@ func NewKalManFilter(dynamParams, measureParams, controlParams int) *KalManFilte
 
 	ret := &KalManFilter{}
 	ret.statePre = mat.NewDense(dynamParams, 1, MakeMatValue(dynamParams, 1, 0))
-	ret.StatePost = mat.NewDense(dynamParams, 1, MakeMatValue(dynamParams, 1, 0))
+	if initState == nil {
+		initState = mat.NewDense(dynamParams, 1, MakeMatValue(dynamParams, 1, 0))
+	}
+	ret.statePost = initState
 	ret.TransitionMatrix = mat.NewDense(dynamParams, dynamParams, MakeMatValue(
 		dynamParams, dynamParams, 0))
 	ret.ProcessNoiseCov = mat.NewDiagonalRect(dynamParams, dynamParams, MakeMatValue(dynamParams, 1, 1))
@@ -67,19 +70,7 @@ func NewKalManFilter(dynamParams, measureParams, controlParams int) *KalManFilte
 }
 
 func p(title string, dense mat.Matrix) {
-
-	defer func() { fmt.Printf("\n") }()
-	fmt.Printf("%s:\n", title)
-	switch x := dense.(type) {
-	case *mat.Dense:
-		if x == nil {
-			return
-		}
-	case *mat.BandDense:
-		if x == nil {
-			return
-		}
-	}
+	fmt.Printf("title:\n")
 	row, col := dense.Dims()
 	for i := 0; i < row; i++ {
 		for j := 0; j < col; j++ {
@@ -87,11 +78,12 @@ func p(title string, dense mat.Matrix) {
 		}
 		fmt.Printf("\n")
 	}
+	fmt.Printf("\n")
 }
 
 func (k *KalManFilter) P() {
 	p("statePre", k.statePre)
-	p("StatePost", k.StatePost)
+	p("statePost", k.statePost)
 	p("TransitionMatrix", k.TransitionMatrix)
 	p("ControlMatrix", k.ControlMatrix)
 	p("MeasurementMatrix", k.MeasurementMatrix)
@@ -111,19 +103,19 @@ func (k *KalManFilter) P() {
 // 控制变量
 func (k *KalManFilter) Predict(control *mat.Dense) *mat.Dense {
 	// update the state: x'(k) = A*x(k)
-	k.statePre = _mul(k.TransitionMatrix, k.StatePost)
+	k.statePre = _mul(k.TransitionMatrix, k.statePost)
 	if control != nil {
 		// x'(k) = x'(k) + B*u(k)
-		k.StatePost.Add(k.StatePost, _mul(k.ControlMatrix, control))
+		k.statePost.Add(k.statePost, _mul(k.ControlMatrix, control))
 	}
 	// update error covariance matrices: temp1 = A*P(k)
 	k.temp1 = _mul(k.TransitionMatrix, k.ErrorCovPost)
 	// P'(k) = temp1*At + Q
-	k.ErrorCovPre = _add(_mul(k.temp1, k.TransitionMatrix.T()), k.ProcessNoiseCov)
-	k.StatePost.CloneFrom(k.statePre)
+	k.ErrorCovPre = _addB(_mulT(k.temp1, k.TransitionMatrix), k.ProcessNoiseCov)
+	k.statePost.CloneFrom(k.statePre)
 	k.ErrorCovPost.CloneFrom(k.ErrorCovPre)
 
-	//k.P()
+	k.P()
 	return k.statePre
 }
 
@@ -131,7 +123,7 @@ func (k *KalManFilter) Correct(measurement *mat.Dense) *mat.Dense {
 	// temp2 = H*P'(k)
 	k.temp2 = _mul(k.MeasurementMatrix, k.ErrorCovPre)
 	// temp3 = temp2*Ht + R
-	k.temp3 = _add(_mul(k.temp2, k.MeasurementMatrix.T()), k.MeasurementNoiseCov)
+	k.temp3 = _addB(_mulT(k.temp2, k.MeasurementMatrix), k.MeasurementNoiseCov)
 	// temp4 = inv(temp3)*temp2 = Kt(k)
 	k.temp4 = _mul(_inverse(k.temp3), k.temp2)
 	// K(k)
@@ -139,11 +131,11 @@ func (k *KalManFilter) Correct(measurement *mat.Dense) *mat.Dense {
 	// temp5 = z(k) - H*x'(k)
 	k.temp5 = _sub(measurement, _mul(k.MeasurementMatrix, k.statePre))
 	// x(k) = x'(k) + K(k)*temp5
-	k.StatePost = _add(k.statePre, _mul(k.gain, k.temp5))
+	k.statePost = _add(k.statePre, _mul(k.gain, k.temp5))
 	// P(k) = P'(k) - K(k)*temp2
 	k.ErrorCovPost = _sub(k.ErrorCovPre, _mul(k.gain, k.temp2))
-	//k.P()
-	return k.StatePost
+	k.P()
+	return k.statePost
 }
 
 func _inverse(a *mat.Dense) *mat.Dense {
@@ -155,19 +147,31 @@ func _inverse(a *mat.Dense) *mat.Dense {
 	return ret
 }
 
-func _mul(a, b mat.Matrix) *mat.Dense {
+func _mulT(a, b *mat.Dense) *mat.Dense {
+	ret := &mat.Dense{}
+	ret.Mul(a, b.T())
+	return ret
+}
+
+func _mul(a, b *mat.Dense) *mat.Dense {
 	ret := &mat.Dense{}
 	ret.Mul(a, b)
 	return ret
 }
 
-func _add(a, b mat.Matrix) *mat.Dense {
+func _addB(a *mat.Dense, b *mat.BandDense) *mat.Dense {
 	ret := &mat.Dense{}
 	ret.Add(a, b)
 	return ret
 }
 
-func _sub(a, b mat.Matrix) *mat.Dense {
+func _add(a *mat.Dense, b *mat.Dense) *mat.Dense {
+	ret := &mat.Dense{}
+	ret.Add(a, b)
+	return ret
+}
+
+func _sub(a *mat.Dense, b *mat.Dense) *mat.Dense {
 	ret := &mat.Dense{}
 	ret.Sub(a, b)
 	return ret
