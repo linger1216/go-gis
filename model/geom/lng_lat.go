@@ -10,7 +10,7 @@ func (l *LngLat) ID() string {
 	return ""
 }
 
-func (l *LngLat) Point() *LngLat {
+func (l *LngLat) Position() *LngLat {
 	return l
 }
 

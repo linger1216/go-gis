@@ -12,17 +12,17 @@ func BoundingRect(coords ...TrackPointer) *geom.Box {
 	latMax := float64(0)
 
 	for i := range coords {
-		if coords[i].Point().Latitude > latMax {
-			latMax = coords[i].Point().Latitude
+		if coords[i].Position().Latitude > latMax {
+			latMax = coords[i].Position().Latitude
 		}
-		if coords[i].Point().Latitude < latMin {
-			latMin = coords[i].Point().Latitude
+		if coords[i].Position().Latitude < latMin {
+			latMin = coords[i].Position().Latitude
 		}
-		if coords[i].Point().Longitude > lngMax {
-			lngMax = coords[i].Point().Longitude
+		if coords[i].Position().Longitude > lngMax {
+			lngMax = coords[i].Position().Longitude
 		}
-		if coords[i].Point().Longitude < lngMin {
-			lngMin = coords[i].Point().Longitude
+		if coords[i].Position().Longitude < lngMin {
+			lngMin = coords[i].Position().Longitude
 		}
 	}
 	return &geom.Box{

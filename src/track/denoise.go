@@ -53,8 +53,51 @@ func (d *Denoise) Exec(ops *DenoiseOption, coords ...hub.TrackPointer) []hub.Tra
 }
 
 func (d *Denoise) _part(coords ...hub.TrackPointer) [][]hub.TrackPointer {
+
+	m := make(map[int64]int64)
+	lastTime := int64(0)
+	for i := range coords {
+		if lastTime == 0 {
+			lastTime = coords[i].Timestamp()
+		} else {
+			dist := coords[i].Timestamp() - lastTime
+			m[dist]++
+			lastTime = coords[i].Timestamp()
+		}
+	}
+
+	// has no timestamp
+	if len(m) == 0 {
+		return [][]hub.TrackPointer{coords}
+	}
+
+	maxKey := int64(0)
+	maxVal := int64(0)
+
+	for k, v := range m {
+		if v > maxVal {
+			maxKey = k
+			maxVal = v
+		}
+	}
+
+	lastTime = 0
+	maxDist := maxKey
 	ret := make([][]hub.TrackPointer, 0)
-	ret = append(ret, coords)
+	ret = append(ret, []hub.TrackPointer{})
+	for i := range coords {
+		if lastTime == 0 {
+			lastTime = coords[i].Timestamp()
+		} else {
+			dist := coords[i].Timestamp() - lastTime
+			if dist > maxDist {
+				ret = append(ret, []hub.TrackPointer{})
+			}
+			ret[len(ret)-1] = append(ret[len(ret)-1], coords[i])
+			lastTime = coords[i].Timestamp()
+		}
+	}
+
 	return ret
 }
 
@@ -78,14 +121,14 @@ func (d *Denoise) _predict(ops *DenoiseOption, coords ...hub.TrackPointer) []hub
 	d.kf.MeasurementNoiseCov = mat.NewDiagonalRect(2, 2, algo.MakeMatValue(2, 1, errorRange))
 
 	if len(coords) > 0 {
-		d.kf.StatePost = mat.NewDense(4, 1, []float64{coords[0].Point().Latitude, coords[0].Point().Longitude, 0, 0})
+		d.kf.StatePost = mat.NewDense(4, 1, []float64{coords[0].Position().Latitude, coords[0].Position().Longitude, 0, 0})
 	}
 	kfPoints := make([]hub.TrackPointer, 0)
 	for i := 0; i < len(coords); i++ {
 		prediction := d.kf.Predict(nil)
 		p := geom.NewLngLat(prediction.At(1, 0), prediction.At(0, 0))
 		kfPoints = append(kfPoints, p)
-		measurement := mat.NewDense(2, 1, []float64{coords[i].Point().Latitude, coords[i].Point().Longitude})
+		measurement := mat.NewDense(2, 1, []float64{coords[i].Position().Latitude, coords[i].Position().Longitude})
 		d.kf.Correct(measurement)
 	}
 	return kfPoints

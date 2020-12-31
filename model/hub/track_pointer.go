@@ -6,14 +6,28 @@ import (
 
 type TrackPointer interface {
 	ID() string
-	Point() *geom.LngLat
+	Position() *geom.LngLat
 	Timestamp() int64
 }
 
 type TrackPoint struct {
-	Id          string      `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty" bson:"_id"`
-	Timestamp   int64       `protobuf:"varint,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	ReceiveTime int64       `protobuf:"varint,4,opt,name=receive_time,json=receiveTime,proto3" json:"receiveTime,omitempty"`
-	AssetId     string      `protobuf:"bytes,1,opt,name=asset_id,proto3" json:"assetId,omitempty"`
-	Point       *geom.Point `protobuf:"bytes,10,opt,name=point,proto3" json:"point,omitempty"`
+	DeviceId string      `json:"deviceId,omitempty"`
+	Time     int64       `json:"timestamp,omitempty"`
+	Point    *geom.Point `json:"point,omitempty"`
+}
+
+func NewTrackPoint(deviceId string, time int64, lng, lat float64) *TrackPoint {
+	return &TrackPoint{DeviceId: deviceId, Time: time, Point: geom.NewPoint(geom.Gcj02, lng, lat)}
+}
+
+func (t *TrackPoint) ID() string {
+	return t.DeviceId
+}
+
+func (t *TrackPoint) Position() *geom.LngLat {
+	return t.Point.Coordinate
+}
+
+func (t *TrackPoint) Timestamp() int64 {
+	return t.Time
 }
