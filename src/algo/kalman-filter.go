@@ -1,4 +1,4 @@
-package track
+package algo
 
 import (
 	"fmt"

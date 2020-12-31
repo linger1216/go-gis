@@ -5,13 +5,13 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/opts"
-	"github.com/linger1216/go-gis/hub"
+	"github.com/linger1216/go-gis/model/hub"
 )
 
-func generateLineItems(coords ...hub.TrackPointer) []opts.LineData {
-	data := make([]opts.LineData, len(coords))
+func generateScatterItems(coords ...hub.TrackPointer) []opts.ScatterData {
+	data := make([]opts.ScatterData, len(coords))
 	for i := range coords {
-		data[i] = opts.LineData{
+		data[i] = opts.ScatterData{
 			Name:       fmt.Sprintf("%d", i),
 			Value:      []float64{coords[i].Point().Latitude, coords[i].Point().Longitude},
 			SymbolSize: 10,
@@ -20,7 +20,7 @@ func generateLineItems(coords ...hub.TrackPointer) []opts.LineData {
 	return data
 }
 
-func DrawLine(width, height int, title string, coords ...hub.TrackPointer) components.Charter {
+func DrawScatter(width, height int, title string, coords ...hub.TrackPointer) components.Charter {
 
 	if width == 0 {
 		width = 1800
@@ -36,8 +36,8 @@ func DrawLine(width, height int, title string, coords ...hub.TrackPointer) compo
 	latMin := box.LeftBottom.Latitude
 	latMax := box.RightTop.Latitude
 
-	Line := charts.NewLine()
-	Line.SetGlobalOptions(
+	scatter := charts.NewScatter()
+	scatter.SetGlobalOptions(
 		charts.WithInitializationOpts(opts.Initialization{
 			Width:  fmt.Sprintf("%dpx", width),
 			Height: fmt.Sprintf("%dpx", height),
@@ -95,6 +95,6 @@ func DrawLine(width, height int, title string, coords ...hub.TrackPointer) compo
 			},
 		),
 	)
-	Line.AddSeries("xy", generateLineItems(coords...))
-	return Line
+	scatter.AddSeries("xy", generateScatterItems(coords...))
+	return scatter
 }

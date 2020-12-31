@@ -1,14 +1,10 @@
-package track
+package algo
 
 import (
-	"github.com/linger1216/go-gis/hub"
+	"github.com/linger1216/go-gis/model/hub"
 	"github.com/linger1216/go-utils/algorithm"
 	"math"
 )
-
-type SimplifyOption struct {
-	Degree float64 `protobuf:"fixed64,1,opt,name=degree,proto3" json:"degree,omitempty"`
-}
 
 // p到线段p1,p2的距离
 // slope: 斜率
@@ -43,32 +39,8 @@ degress:6 total:937 current:53
 degress:7 total:937 current:29
 *
 */
-func Simplify(ops *SimplifyOption, coords ...hub.TrackPointer) []hub.TrackPointer {
-	return _douglasPeucker(_transEpsilon(int(ops.Degree)), coords...)
-}
 
-func _transEpsilon(level int) float64 {
-	switch level {
-	case 1:
-		return 0.000003
-	case 2:
-		return 0.000010
-	case 3:
-		return 0.000020
-	case 4:
-		return 0.000050
-	case 5:
-		return 0.000100
-	case 6:
-		return 0.000200
-	case 7:
-		return 0.000500
-	default:
-		return 0.000030
-	}
-}
-
-func _douglasPeuckerRecursion(epsilon float64, coords ...hub.TrackPointer) []hub.TrackPointer {
+func DouglasPeuckerRecursion(epsilon float64, coords ...hub.TrackPointer) []hub.TrackPointer {
 	if len(coords) < 3 {
 		return coords
 	}
@@ -86,8 +58,8 @@ func _douglasPeuckerRecursion(epsilon float64, coords ...hub.TrackPointer) []hub
 	if dist > epsilon {
 		l1 := coords[0 : index+1]
 		l2 := coords[index:]
-		r1 := _douglasPeuckerRecursion(epsilon, l1...)
-		r2 := _douglasPeuckerRecursion(epsilon, l2...)
+		r1 := DouglasPeuckerRecursion(epsilon, l1...)
+		r2 := DouglasPeuckerRecursion(epsilon, l2...)
 		rs := append(r1[0:len(r1)-1], r2...)
 		return rs
 	} else {
@@ -97,7 +69,7 @@ func _douglasPeuckerRecursion(epsilon float64, coords ...hub.TrackPointer) []hub
 	}
 }
 
-func _douglasPeucker(epsilon float64, coords ...hub.TrackPointer) []hub.TrackPointer {
+func DouglasPeucker(epsilon float64, coords ...hub.TrackPointer) []hub.TrackPointer {
 	if len(coords) < 3 {
 		return coords
 	}

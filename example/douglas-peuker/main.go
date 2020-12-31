@@ -4,10 +4,10 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/go-echarts/go-echarts/v2/components"
-	"github.com/linger1216/go-gis/algo/track"
-	"github.com/linger1216/go-gis/geom"
-	"github.com/linger1216/go-gis/hub"
-	"github.com/linger1216/go-gis/visualizer"
+	"github.com/linger1216/go-gis/model/geom"
+	"github.com/linger1216/go-gis/model/hub"
+	"github.com/linger1216/go-gis/src/track"
+	"github.com/linger1216/go-gis/src/visualizer"
 	"github.com/linger1216/go-utils/convert"
 	"io"
 	"os"
@@ -68,18 +68,18 @@ func main() {
 	width := 600
 	height := 400
 
+	dp := track.NewSimplify()
+
 	page := components.NewPage()
+	page.PageTitle = visualizerFilename
 	page.SetLayout(components.PageFlexLayout)
-	// draw
 	origin := visualizer.DrawLine(width, height, fmt.Sprintf("visualizer %d points", len(xys)), points...)
-
 	page.AddCharts(origin)
-
 	for i := range degrees {
 		ops := &track.SimplifyOption{
 			Degree: degrees[i],
 		}
-		simple := track.Simplify(ops, points...)
+		simple := dp.Exec(ops, points...)
 		page.AddCharts(visualizer.DrawLine(width, height, fmt.Sprintf("visualizer %d points with epsilon:%f",
 			len(simple), ops.Degree), simple...))
 		fmt.Printf("degress:%f origin:%d current:%d\n", degrees[i], len(xys), len(simple))

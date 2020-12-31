@@ -4,12 +4,11 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/go-echarts/go-echarts/v2/components"
-	"github.com/linger1216/go-gis/algo/track"
-	"github.com/linger1216/go-gis/geom"
-	"github.com/linger1216/go-gis/hub"
-	"github.com/linger1216/go-gis/visualizer"
+	"github.com/linger1216/go-gis/model/geom"
+	"github.com/linger1216/go-gis/model/hub"
+	"github.com/linger1216/go-gis/src/track"
+	"github.com/linger1216/go-gis/src/visualizer"
 	"github.com/linger1216/go-utils/convert"
-	"gonum.org/v1/gonum/mat"
 	"io"
 	"os"
 )
@@ -97,45 +96,16 @@ func main() {
 		cppPoints[i] = cppXYs[i]
 	}
 
-	// kf
-	kf := track.NewKalManFilter(4, 2, 0)
-	if len(rawPoints) > 0 {
-		kf.StatePost = mat.NewDense(4, 1, []float64{rawPoints[0].Point().Latitude, rawPoints[0].Point().Longitude, 0, 0})
-	}
-	kf.TransitionMatrix = mat.NewDense(4, 4, []float64{
-		1, 0, 1, 0,
-		0, 1, 0, 1,
-		0, 0, 1, 0,
-		0, 0, 0, 1,
-	})
-	kf.MeasurementMatrix = mat.NewDense(2, 4, []float64{
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-	})
-	// 协方差矩阵
-	kf.ProcessNoiseCov = mat.NewDiagonalRect(4, 4, track.MakeMatValue(4, 1, 1e-5))
-	kf.MeasurementNoiseCov = mat.NewDiagonalRect(2, 2, track.MakeMatValue(2, 1, 1e-5))
-	kf.ErrorCovPost = mat.NewDense(4, 4, []float64{
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1,
-	})
-
-	kfPoints := make([]hub.TrackPointer, 0)
-	for i := 0; i < len(rawPoints); i++ {
-		prediction := kf.Predict(nil)
-		p := geom.NewLngLat(prediction.At(1, 0), prediction.At(0, 0))
-		kfPoints = append(kfPoints, p)
-		measurement := mat.NewDense(2, 1, []float64{rawPoints[i].Point().Latitude, rawPoints[i].Point().Longitude})
-		kf.Correct(measurement)
-	}
+	// kf 1e-5
+	kf := track.NewDenoise()
+	kfPoints := kf.Exec(&track.DenoiseOption{Degree: 1}, rawPoints...)
 
 	// draw output
 	width := 600
 	height := 400
 
 	page := components.NewPage()
+	page.PageTitle = visualizerFilename
 	page.SetLayout(components.PageFlexLayout)
 	rawView := visualizer.DrawLine(width, height, fmt.Sprintf("visualizer %d rawPoints", len(rawXYs)), rawPoints...)
 	page.AddCharts(rawView)
