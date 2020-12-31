@@ -13,7 +13,7 @@ func generateLineItems(coords ...hub.TrackPointer) []opts.LineData {
 	for i := range coords {
 		data[i] = opts.LineData{
 			Name:       fmt.Sprintf("%d", i),
-			Value:      []float64{coords[i].Position().Latitude, coords[i].Position().Longitude},
+			Value:      []float64{coords[i].Point().Latitude, coords[i].Point().Longitude},
 			SymbolSize: 10,
 		}
 	}

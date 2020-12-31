@@ -14,12 +14,12 @@ import (
 // https://zhuanlan.zhihu.com/p/26307123
 // https://baike.baidu.com/item/%E4%B8%A4%E7%82%B9%E5%BC%8F
 func _perpendicularDistance(p, p1, p2 hub.TrackPointer) (result float64) {
-	if p1.Position().Latitude == p2.Position().Latitude {
-		result = math.Abs(p.Position().Latitude - p1.Position().Latitude)
+	if p1.Point().Latitude == p2.Point().Latitude {
+		result = math.Abs(p.Point().Latitude - p1.Point().Latitude)
 	} else {
-		slope := (p2.Position().Longitude - p1.Position().Longitude) / (p2.Position().Latitude - p1.Position().Latitude)
-		intercept := p1.Position().Longitude - (slope * p1.Position().Latitude)
-		result = math.Abs(slope*p.Position().Latitude-p.Position().Longitude+intercept) / math.Sqrt(math.Pow(slope, 2)+1)
+		slope := (p2.Point().Longitude - p1.Point().Longitude) / (p2.Point().Latitude - p1.Point().Latitude)
+		intercept := p1.Point().Longitude - (slope * p1.Point().Latitude)
+		result = math.Abs(slope*p.Point().Latitude-p.Point().Longitude+intercept) / math.Sqrt(math.Pow(slope, 2)+1)
 	}
 	return
 }

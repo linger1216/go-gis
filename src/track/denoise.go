@@ -121,14 +121,14 @@ func (d *Denoise) _predict(ops *DenoiseOption, coords ...hub.TrackPointer) []hub
 	d.kf.MeasurementNoiseCov = mat.NewDiagonalRect(2, 2, algo.MakeMatValue(2, 1, errorRange))
 
 	if len(coords) > 0 {
-		d.kf.StatePost = mat.NewDense(4, 1, []float64{coords[0].Position().Latitude, coords[0].Position().Longitude, 0, 0})
+		d.kf.StatePost = mat.NewDense(4, 1, []float64{coords[0].Point().Latitude, coords[0].Point().Longitude, 0, 0})
 	}
 	kfPoints := make([]hub.TrackPointer, 0)
 	for i := 0; i < len(coords); i++ {
 		prediction := d.kf.Predict(nil)
 		p := geom.NewLngLat(prediction.At(1, 0), prediction.At(0, 0))
 		kfPoints = append(kfPoints, p)
-		measurement := mat.NewDense(2, 1, []float64{coords[i].Position().Latitude, coords[i].Position().Longitude})
+		measurement := mat.NewDense(2, 1, []float64{coords[i].Point().Latitude, coords[i].Point().Longitude})
 		d.kf.Correct(measurement)
 	}
 	return kfPoints

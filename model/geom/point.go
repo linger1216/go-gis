@@ -8,7 +8,7 @@ type Point struct {
 }
 
 func NewPoint(spatialReference string, coordinates ...float64) *Point {
-	return &Point{Coordinate: NewLngLat(coordinates...), Type: "Point", SpatialReference: spatialReference}
+	return &Point{Coordinate: NewLngLat(coordinates...), Type: "Position", SpatialReference: spatialReference}
 }
 
 type MultiPoint struct {
