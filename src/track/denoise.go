@@ -1,6 +1,7 @@
 package track
 
 import (
+	"fmt"
 	"github.com/linger1216/go-gis/model/geom"
 	"github.com/linger1216/go-gis/model/hub"
 	"github.com/linger1216/go-gis/src/algo"
@@ -97,28 +98,40 @@ func (d *Denoise) _part(coords ...hub.TrackPointer) [][]hub.TrackPointer {
 			lastTime = coords[i].Timestamp()
 		}
 	}
-
 	return ret
 }
 
-func (d *Denoise) _transEpsilon(level int) float64 {
+func (d *Denoise) EpsilonString(level int) string {
+	Q, R := d._transEpsilon(level)
+	return fmt.Sprintf("Q:%.2fm, R:%.2fm", Q*1e6, R*1e6)
+}
+
+func (d *Denoise) _transEpsilon(level int) (float64, float64) {
+	R := 2e-5
 	switch level {
 	case 1:
-		return 0.00001
+		return 3e-6, R
 	case 2:
-		return 0.0001
+		return 1e-6, R
 	case 3:
-		return 0.001
+		return 5e-7, R
+	case 4:
+		return 3e-7, R
+	case 5:
+		return 1e-7, R
+	case 6:
+		return 1e-8, R
+	case 7:
+		return 1e-9, R
 	default:
-		return 0.0001
+		return 3e-7, R
 	}
 }
 
 func (d *Denoise) _predict(ops *DenoiseOption, coords ...hub.TrackPointer) []hub.TrackPointer {
-	errorRange := d._transEpsilon(int(ops.Degree))
-	// 协方差矩阵
-	d.kf.ProcessNoiseCov = mat.NewDiagonalRect(4, 4, algo.MakeMatValue(4, 1, errorRange))
-	d.kf.MeasurementNoiseCov = mat.NewDiagonalRect(2, 2, algo.MakeMatValue(2, 1, errorRange))
+	Q, R := d._transEpsilon(int(ops.Degree))
+	d.kf.ProcessNoiseCov = mat.NewDiagonalRect(4, 4, algo.MakeMatValue(4, 1, Q))
+	d.kf.MeasurementNoiseCov = mat.NewDiagonalRect(2, 2, algo.MakeMatValue(2, 1, R))
 
 	if len(coords) > 0 {
 		d.kf.StatePost = mat.NewDense(4, 1, []float64{coords[0].Point().Latitude, coords[0].Point().Longitude, 0, 0})

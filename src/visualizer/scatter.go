@@ -20,7 +20,7 @@ func generateScatterItems(coords ...hub.TrackPointer) []opts.ScatterData {
 	return data
 }
 
-func DrawScatter(width, height int, title string, coords ...hub.TrackPointer) components.Charter {
+func DrawScatter(width, height int, title string, coords ...[]hub.TrackPointer) components.Charter {
 
 	if width == 0 {
 		width = 1800
@@ -95,6 +95,10 @@ func DrawScatter(width, height int, title string, coords ...hub.TrackPointer) co
 			},
 		),
 	)
-	scatter.AddSeries("xy", generateScatterItems(coords...))
+
+	for i := range coords {
+		scatter.AddSeries(fmt.Sprintf("%d", i), generateScatterItems(coords[i]...))
+	}
+
 	return scatter
 }

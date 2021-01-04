@@ -17,18 +17,21 @@ func main() {
 
 	// common
 	count := 0
-	jump := 0
+	jump := 1
 	visualizerFilename := "kalman-filter.html"
 
-	// control
-	rawFilename := "res/2000.csv"
-	rawLatIndex := 0
-	rawLngIndex := 1
-	cppFilename := "res/kfcpp.csv"
-	cppLatIndex := 2
-	cppLngIndex := 3
+	// draw output
+	width := 600
+	height := 400
 
-	// load rawView
+	page := components.NewPage()
+	page.PageTitle = visualizerFilename
+	page.SetLayout(components.PageFlexLayout)
+
+	// raw
+	rawFilename := "res/test2_line_RaPts1000_random.csv"
+	rawLatIndex := 3
+	rawLngIndex := 2
 	rawFile, err := os.OpenFile(rawFilename, os.O_RDONLY, 0644)
 	if err != nil {
 		panic(err)
@@ -62,57 +65,19 @@ func main() {
 		rawPoints[i] = rawXYs[i]
 	}
 
-	// load cpp
-	cppFile, err := os.OpenFile(cppFilename, os.O_RDONLY, 0644)
-	if err != nil {
-		panic(err)
-	}
-	cppXYs := make([]*geom.LngLat, 0)
-	cppReader := csv.NewReader(cppFile)
-	cppReader.LazyQuotes = true
-	for {
-		line, err := cppReader.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			panic(err)
-		}
-		count++
-		if count <= jump {
-			continue
-		}
-		if len(line) >= 0 {
-			cppXYs = append(cppXYs, &geom.LngLat{
-				Latitude:  convert.StringToFloat(line[cppLatIndex]),
-				Longitude: convert.StringToFloat(line[cppLngIndex]),
-			})
-		}
-	}
-	_ = cppFile.Close()
-
-	cppPoints := make([]hub.TrackPointer, len(cppXYs))
-	for i := range cppXYs {
-		cppPoints[i] = cppXYs[i]
-	}
-
-	// kf 1e-5
-	kf := track.NewDenoise()
-	kfPoints := kf.Exec(&track.DenoiseOption{Degree: 1}, rawPoints...)
-
-	// draw output
-	width := 600
-	height := 400
-
-	page := components.NewPage()
-	page.PageTitle = visualizerFilename
-	page.SetLayout(components.PageFlexLayout)
-	rawView := visualizer.DrawLine(width, height, fmt.Sprintf("visualizer %d rawPoints", len(rawXYs)), rawPoints...)
+	rawPoints = rawPoints[:100]
+	rawView := visualizer.DrawLine(width, height, fmt.Sprintf("visualizer %d rawPoints", len(rawXYs)), rawPoints)
 	page.AddCharts(rawView)
-	kfView := visualizer.DrawLine(width, height, fmt.Sprintf("go kf visualizer %d rawPoints", len(kfPoints)), kfPoints...)
-	page.AddCharts(kfView)
-	cppView := visualizer.DrawLine(width, height, fmt.Sprintf("cpp kf visualizer %d rawPoints", len(cppPoints)), cppPoints...)
-	page.AddCharts(cppView)
+	_ = rawView
+
+	kf := track.NewDenoise()
+
+	for i := 1; i <= 7; i++ {
+		kfPoints := kf.Exec(&track.DenoiseOption{Degree: float64(i)}, rawPoints...)
+		kfView := visualizer.DrawLine(width, height, fmt.Sprintf("go kf visualizer %d rawPoints with degress:%d", len(kfPoints), i), kfPoints)
+		page.AddCharts(kfView)
+		_ = kfView
+	}
 
 	pageFile, err := os.Create(visualizerFilename)
 	if err != nil {

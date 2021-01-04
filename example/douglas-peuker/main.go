@@ -73,7 +73,7 @@ func main() {
 	page := components.NewPage()
 	page.PageTitle = visualizerFilename
 	page.SetLayout(components.PageFlexLayout)
-	origin := visualizer.DrawLine(width, height, fmt.Sprintf("visualizer %d points", len(xys)), points...)
+	origin := visualizer.DrawLine(width, height, fmt.Sprintf("visualizer %d points", len(xys)), points)
 	page.AddCharts(origin)
 	for i := range degrees {
 		ops := &track.SimplifyOption{
@@ -81,7 +81,7 @@ func main() {
 		}
 		simple := dp.Exec(ops, points...)
 		page.AddCharts(visualizer.DrawLine(width, height, fmt.Sprintf("visualizer %d points with epsilon:%f",
-			len(simple), ops.Degree), simple...))
+			len(simple), ops.Degree), simple))
 		fmt.Printf("degress:%f origin:%d current:%d\n", degrees[i], len(xys), len(simple))
 	}
 	pageFile, err := os.Create(visualizerFilename)

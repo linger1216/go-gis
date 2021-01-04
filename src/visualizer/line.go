@@ -20,7 +20,7 @@ func generateLineItems(coords ...hub.TrackPointer) []opts.LineData {
 	return data
 }
 
-func DrawLine(width, height int, title string, coords ...hub.TrackPointer) components.Charter {
+func DrawLine(width, height int, title string, coords ...[]hub.TrackPointer) components.Charter {
 
 	if width == 0 {
 		width = 1800
@@ -36,8 +36,14 @@ func DrawLine(width, height int, title string, coords ...hub.TrackPointer) compo
 	latMin := box.LeftBottom.Latitude
 	latMax := box.RightTop.Latitude
 
+	_ = lngMax
+	_ = lngMin
+	_ = latMax
+	_ = latMin
+
 	Line := charts.NewLine()
 	Line.SetGlobalOptions(
+		charts.WithColorsOpts(opts.Colors{"green", "red"}),
 		charts.WithInitializationOpts(opts.Initialization{
 			Width:  fmt.Sprintf("%dpx", width),
 			Height: fmt.Sprintf("%dpx", height),
@@ -67,20 +73,7 @@ func DrawLine(width, height int, title string, coords ...hub.TrackPointer) compo
 				Show: true,
 			},
 		}),
-
 		charts.WithDataZoomOpts(
-			//opts.DataZoom{
-			//	Type:       "slider",
-			//	XAxisIndex: 0,
-			//	Start:      float32(latMin) / float32(latMax) * 100,
-			//	End:        100,
-			//},
-			//opts.DataZoom{
-			//	Type:       "slider",
-			//	YAxisIndex: 0,
-			//	Start:      float32(lngMin) / float32(lngMax) * 100,
-			//	End:        100,
-			//},
 			opts.DataZoom{
 				Type:       "inside",
 				XAxisIndex: 0,
@@ -95,6 +88,12 @@ func DrawLine(width, height int, title string, coords ...hub.TrackPointer) compo
 			},
 		),
 	)
-	Line.AddSeries("xy", generateLineItems(coords...))
+
+	for i := range coords {
+		Line.AddSeries(fmt.Sprintf("cpp-%d", i), generateLineItems(coords[i]...))
+	}
+
+	Line.SetSeriesOptions(charts.WithLineChartOpts(opts.LineChart{Smooth: true}))
+
 	return Line
 }
