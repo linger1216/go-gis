@@ -12,8 +12,8 @@ import (
 
 var (
 	r   = rand.New(rand.NewSource(time.Now().UnixNano()))
-	Max = 0.00005
-	Min = 0.00004
+	Max = 0.00006
+	Min = 0.00005
 )
 
 func randomBuffer(x float64) float64 {

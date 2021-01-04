@@ -6,6 +6,11 @@ import (
 	"github.com/linger1216/go-gis/model/hub"
 	"github.com/linger1216/go-gis/src/algo"
 	"gonum.org/v1/gonum/mat"
+	"math"
+)
+
+const (
+	MeasurementNoise = 2e-5
 )
 
 type DenoiseOption struct {
@@ -107,32 +112,63 @@ func (d *Denoise) EpsilonString(level int) string {
 }
 
 func (d *Denoise) _transEpsilon(level int) (float64, float64) {
-	R := 2e-5
 	switch level {
 	case 1:
-		return 3e-6, R
+		return 3e-6, MeasurementNoise
 	case 2:
-		return 1e-6, R
+		return 1e-6, MeasurementNoise
 	case 3:
-		return 5e-7, R
+		return 5e-7, MeasurementNoise
 	case 4:
-		return 3e-7, R
+		return 3e-7, MeasurementNoise
 	case 5:
-		return 1e-7, R
+		return 1e-7, MeasurementNoise
 	case 6:
-		return 1e-8, R
+		return 1e-8, MeasurementNoise
 	case 7:
-		return 1e-9, R
+		return 1e-9, MeasurementNoise
 	default:
-		return 3e-7, R
+		return -1, MeasurementNoise
 	}
 }
 
 func (d *Denoise) _predict(ops *DenoiseOption, coords ...hub.TrackPointer) []hub.TrackPointer {
 	Q, R := d._transEpsilon(int(ops.Degree))
+	if Q < 0 {
+		//d.kf.ProcessNoiseCov = mat.NewDiagonalRect(4, 4, algo.MakeMatValue(4, 1, 0))
+		//points := d.__predict(coords...)
+		points := coords
+		// todo
+		// dists 没有方向方面的矢量运算
+		dists := make([]float64, len(points))
+		sum := float64(64)
+		size := len(points)
+		for i := range points {
+			if i == 0 {
+				dists[i] = 0
+				continue
+			}
+			dist := geom.Distance(points[i].Point().Longitude, points[i].Point().Latitude,
+				points[i-1].Point().Longitude, points[i-1].Point().Latitude)
+			dists[i] = dist
+			sum += dist
+		}
+
+		avg := sum / float64(size-1)
+		E := float64(0)
+		for i := 1; i < size; i++ {
+			fmt.Printf("dist[%d]=%f\n", i, dists[i])
+			E += (avg - dists[i]) * (avg - dists[i])
+		}
+		E /= float64(size) * 1e6
+		Q = math.Abs(E - R)
+	}
 	d.kf.ProcessNoiseCov = mat.NewDiagonalRect(4, 4, algo.MakeMatValue(4, 1, Q))
 	d.kf.MeasurementNoiseCov = mat.NewDiagonalRect(2, 2, algo.MakeMatValue(2, 1, R))
+	return d.__predict(coords...)
+}
 
+func (d *Denoise) __predict(coords ...hub.TrackPointer) []hub.TrackPointer {
 	if len(coords) > 0 {
 		d.kf.StatePost = mat.NewDense(4, 1, []float64{coords[0].Point().Latitude, coords[0].Point().Longitude, 0, 0})
 	}

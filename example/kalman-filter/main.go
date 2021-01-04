@@ -72,7 +72,7 @@ func main() {
 
 	kf := track.NewDenoise()
 
-	for i := 1; i <= 7; i++ {
+	for i := 0; i <= 7; i++ {
 		kfPoints := kf.Exec(&track.DenoiseOption{Degree: float64(i)}, rawPoints...)
 		kfView := visualizer.DrawLine(width, height, fmt.Sprintf("go kf visualizer %d rawPoints with degress:%d", len(kfPoints), i), kfPoints)
 		page.AddCharts(kfView)
