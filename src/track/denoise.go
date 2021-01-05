@@ -17,12 +17,12 @@ type DenoiseOption struct {
 	Degree float64 `protobuf:"fixed64,1,opt,name=degree,proto3" json:"degree,omitempty"`
 }
 
-type Denoise struct {
+type NormalDenoise struct {
 	kf *algo.KalManFilter
 }
 
 // option *DenoiseOption
-func NewDenoise() *Denoise {
+func NewNormalDenoise() *NormalDenoise {
 	// kf
 	kf := algo.NewKalManFilter(4, 2, 0)
 
@@ -44,10 +44,10 @@ func NewDenoise() *Denoise {
 		0, 0, 0, 1,
 	})
 
-	return &Denoise{kf: kf}
+	return &NormalDenoise{kf: kf}
 }
 
-func (d *Denoise) Exec(ops *DenoiseOption, coords ...hub.TrackPointer) []hub.TrackPointer {
+func (d *NormalDenoise) Exec(ops *DenoiseOption, coords ...hub.TrackPointer) []hub.TrackPointer {
 	ret := make([]hub.TrackPointer, 0, len(coords))
 	tracks := d._part(coords...)
 	for i := range tracks {
@@ -58,7 +58,7 @@ func (d *Denoise) Exec(ops *DenoiseOption, coords ...hub.TrackPointer) []hub.Tra
 	return ret
 }
 
-func (d *Denoise) _part(coords ...hub.TrackPointer) [][]hub.TrackPointer {
+func (d *NormalDenoise) _part(coords ...hub.TrackPointer) [][]hub.TrackPointer {
 
 	m := make(map[int64]int64)
 	lastTime := int64(0)
@@ -106,12 +106,12 @@ func (d *Denoise) _part(coords ...hub.TrackPointer) [][]hub.TrackPointer {
 	return ret
 }
 
-func (d *Denoise) EpsilonString(level int) string {
+func (d *NormalDenoise) EpsilonString(level int) string {
 	Q, R := d._transEpsilon(level)
 	return fmt.Sprintf("Q:%.2fm, R:%.2fm", Q*1e6, R*1e6)
 }
 
-func (d *Denoise) _transEpsilon(level int) (float64, float64) {
+func (d *NormalDenoise) _transEpsilon(level int) (float64, float64) {
 	switch level {
 	case 1:
 		return 3e-6, MeasurementNoise
@@ -132,7 +132,7 @@ func (d *Denoise) _transEpsilon(level int) (float64, float64) {
 	}
 }
 
-func (d *Denoise) _predict(ops *DenoiseOption, coords ...hub.TrackPointer) []hub.TrackPointer {
+func (d *NormalDenoise) _predict(ops *DenoiseOption, coords ...hub.TrackPointer) []hub.TrackPointer {
 	Q, R := d._transEpsilon(int(ops.Degree))
 	if Q < 0 {
 		//d.kf.ProcessNoiseCov = mat.NewDiagonalRect(4, 4, algo.MakeMatValue(4, 1, 0))
@@ -168,7 +168,7 @@ func (d *Denoise) _predict(ops *DenoiseOption, coords ...hub.TrackPointer) []hub
 	return d.__predict(coords...)
 }
 
-func (d *Denoise) __predict(coords ...hub.TrackPointer) []hub.TrackPointer {
+func (d *NormalDenoise) __predict(coords ...hub.TrackPointer) []hub.TrackPointer {
 	if len(coords) > 0 {
 		d.kf.StatePost = mat.NewDense(4, 1, []float64{coords[0].Point().Latitude, coords[0].Point().Longitude, 0, 0})
 	}

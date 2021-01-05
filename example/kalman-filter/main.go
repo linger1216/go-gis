@@ -70,7 +70,7 @@ func main() {
 	page.AddCharts(rawView)
 	_ = rawView
 
-	kf := track.NewDenoise()
+	kf := track.NewNormalDenoise()
 
 	for i := 0; i <= 7; i++ {
 		kfPoints := kf.Exec(&track.DenoiseOption{Degree: float64(i)}, rawPoints...)

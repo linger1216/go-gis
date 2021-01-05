@@ -7,7 +7,7 @@ import (
 )
 
 func TestDenoise__part(t *testing.T) {
-	d := NewDenoise()
+	d := NewNormalDenoise()
 	tests := []struct {
 		name string
 		args []hub.TrackPointer
