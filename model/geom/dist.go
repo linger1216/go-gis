@@ -27,3 +27,9 @@ func Distance(lng1, lat1, lng2, lat2 float64) float64 {
 
 	return 2 * r * math.Asin(math.Sqrt(h))
 }
+
+func EuclideanDistance(lng1, lat1, lng2, lat2 float64) float64 {
+	x := math.Abs(lat1 - lat2)
+	y := math.Abs(lng1 - lng2)
+	return math.Sqrt(x*x + y*y)
+}

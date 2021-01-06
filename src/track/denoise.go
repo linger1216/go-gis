@@ -141,7 +141,7 @@ func (d *NormalDenoise) _predict(ops *DenoiseOption, coords ...hub.TrackPointer)
 		// todo
 		// dists 没有方向方面的矢量运算
 		dists := make([]float64, len(points))
-		sum := float64(64)
+		sum := float64(0)
 		size := len(points)
 		for i := range points {
 			if i == 0 {
