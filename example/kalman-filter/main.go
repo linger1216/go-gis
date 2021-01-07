@@ -71,8 +71,17 @@ func main() {
 
 	kf := track.NewNormalDenoise()
 
+	d := track.NewDrift()
 	for i := 0; i <= 7; i++ {
-		kfPoints := kf.Exec(&track.DenoiseOption{Degree: float64(i)}, rawPoints...)
+		driftedRawPoints := make([]track.TrackPointer, 0, len(rawPoints))
+		arr := track.NewSegment().Exec(nil, rawPoints...)
+		for i := range arr {
+			drifted := d.Exec(nil, arr[i]...)
+			if len(drifted) > 0 {
+				driftedRawPoints = append(driftedRawPoints, drifted...)
+			}
+		}
+		kfPoints := kf.Exec(&track.DenoiseOption{Degree: float64(i)}, driftedRawPoints...)
 		kfView := visualizer.DrawLine(width, height, fmt.Sprintf("go kf visualizer %d rawPoints with degress:%d", len(kfPoints), i), kfPoints)
 		page.AddCharts(kfView)
 		_ = kfView

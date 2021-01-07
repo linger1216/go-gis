@@ -70,7 +70,7 @@ func TestSegment__segmentByInterval(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &Segment{}
-			got := d.SegmentByInterval(nil, tt.args...)
+			got := d._segmentByInterval(nil, tt.args...)
 			p(got)
 			if !reflect.DeepEqual(len(got), tt.want) {
 				t.Errorf("_segmentByInterval() = %v, want %v", len(got), tt.want)

@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	// 代表20m的误差
 	MeasurementNoise = 2e-5
 )
 
@@ -22,9 +23,7 @@ type NormalDenoise struct {
 
 // option *DenoiseOption
 func NewNormalDenoise() *NormalDenoise {
-	// kf
 	kf := algo.NewKalManFilter(4, 2, 0)
-
 	kf.TransitionMatrix = mat.NewDense(4, 4, []float64{
 		1, 0, 1, 0,
 		0, 1, 0, 1,
@@ -35,72 +34,19 @@ func NewNormalDenoise() *NormalDenoise {
 		1, 0, 0, 0,
 		0, 1, 0, 0,
 	})
-
 	kf.ErrorCovPost = mat.NewDense(4, 4, []float64{
 		1, 0, 0, 0,
 		0, 1, 0, 0,
 		0, 0, 1, 0,
 		0, 0, 0, 1,
 	})
-
 	return &NormalDenoise{kf: kf}
 }
 
 func (d *NormalDenoise) Exec(ops *DenoiseOption, coords ...TrackPointer) []TrackPointer {
 	ret := make([]TrackPointer, 0, len(coords))
-	tracks := d._part(coords...)
-	for i := range tracks {
-		if points := d._predict(ops, tracks[i]...); len(points) > 0 {
-			ret = append(ret, points...)
-		}
-	}
-	return ret
-}
-
-func (d *NormalDenoise) _part(coords ...TrackPointer) [][]TrackPointer {
-
-	m := make(map[int64]int64)
-	lastTime := int64(0)
-	for i := range coords {
-		if lastTime == 0 {
-			lastTime = coords[i].Timestamp()
-		} else {
-			dist := coords[i].Timestamp() - lastTime
-			m[dist]++
-			lastTime = coords[i].Timestamp()
-		}
-	}
-
-	// has no timestamp
-	if len(m) == 0 {
-		return [][]TrackPointer{coords}
-	}
-
-	maxKey := int64(0)
-	maxVal := int64(0)
-
-	for k, v := range m {
-		if v > maxVal {
-			maxKey = k
-			maxVal = v
-		}
-	}
-
-	lastTime = 0
-	maxDist := maxKey
-	ret := make([][]TrackPointer, 0)
-	ret = append(ret, []TrackPointer{})
-	for i := range coords {
-		if lastTime == 0 {
-			lastTime = coords[i].Timestamp()
-		} else {
-			dist := coords[i].Timestamp() - lastTime
-			if dist > maxDist {
-				ret = append(ret, []TrackPointer{})
-			}
-			ret[len(ret)-1] = append(ret[len(ret)-1], coords[i])
-			lastTime = coords[i].Timestamp()
-		}
+	if points := d._predict(ops, coords...); len(points) > 0 {
+		ret = append(ret, points...)
 	}
 	return ret
 }

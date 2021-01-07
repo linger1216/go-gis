@@ -69,17 +69,23 @@ func main() {
 	page.AddCharts(origin)
 
 	d := track.NewDrift()
-	simple := d.Exec(&track.DriftOption{SegmentPolicy: track.SegmentPolicyByInterval}, points...)
-	page.AddCharts(visualizer.DrawLine(width, height, fmt.Sprintf("visualizer %d points after",
-		len(simple)), simple))
+	driftedAllPoints := make([]track.TrackPointer, 0, len(points))
+	arr := track.NewSegment().Exec(nil, points...)
+	for i := range arr {
+		drifted := d.Exec(nil, arr[i]...)
+		if len(drifted) > 0 {
+			driftedAllPoints = append(driftedAllPoints, drifted...)
+		}
+	}
 
-	// 分段情况, 用于调试
-	//arr := track.NewSegment().SegmentByDist(nil, points...)
-	//for i := range arr {
-	//	page.AddCharts(visualizer.DrawLine(width, height, fmt.Sprintf("visualizer %d points Segment[%d]-before", len(arr[i]), i), arr[i]))
-	//	drifted := track.NewDrift().Exec(nil, arr[i]...)
-	//	page.AddCharts(visualizer.DrawLine(width, height, fmt.Sprintf("visualizer %d points Segment[%d]-after", len(drifted), i), drifted))
-	//}
+	page.AddCharts(visualizer.DrawLine(width, height, fmt.Sprintf("visualizer %d points drifted all",
+		len(driftedAllPoints)), driftedAllPoints))
+
+	for i := range arr {
+		page.AddCharts(visualizer.DrawLine(width, height, fmt.Sprintf("visualizer %d points Segment[%d]-before", len(arr[i]), i), arr[i]))
+		drifted := d.Exec(nil, arr[i]...)
+		page.AddCharts(visualizer.DrawLine(width, height, fmt.Sprintf("visualizer %d points Segment[%d]-after", len(drifted), i), drifted))
+	}
 
 	pageFile, err := os.Create(visualizerFilename)
 	if err != nil {

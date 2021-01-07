@@ -30,7 +30,7 @@ func TestDrift__DriftByStandardDeviation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &Drift{}
-			got := d._DriftByStandardDeviation(nil, tt.args...)
+			got := d.DriftByStandardDeviation(nil, tt.args...)
 			if !reflect.DeepEqual(len(got), tt.want) {
 				t.Errorf("_segmentByInterval() = %v, want %v", len(got), tt.want)
 			}

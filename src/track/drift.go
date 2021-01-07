@@ -5,14 +5,7 @@ import (
 	"math"
 )
 
-const (
-	SegmentPolicyByDist     = "Dist"
-	SegmentPolicyByInterval = "Interval"
-	NoSegment               = "Nope"
-)
-
 type DriftOption struct {
-	SegmentPolicy string // "Dist", "Interval", "Nope"
 }
 
 type Drift struct {
@@ -23,36 +16,10 @@ func NewDrift() *Drift {
 }
 
 func (d *Drift) Exec(ops *DriftOption, coords ...TrackPointer) []TrackPointer {
-
-	if ops == nil {
-		ops = &DriftOption{NoSegment}
-	}
-
-	var arr [][]TrackPointer
-
-	switch ops.SegmentPolicy {
-	case SegmentPolicyByDist:
-		arr = NewSegment().SegmentByDist(nil, coords...)
-	case SegmentPolicyByInterval:
-		arr = NewSegment().SegmentByInterval(nil, coords...)
-	default:
-		arr = append(arr, coords)
-	}
-
-	ret := make([]TrackPointer, 0, len(coords))
-	for i := range arr {
-		if v := d._DriftByStandardDeviation(ops, arr[i]...); len(v) > 0 {
-			if len(v) == 2 {
-				// todo
-				// 暂时不知道要放弃哪个点
-			}
-			ret = append(ret, v...)
-		}
-	}
-	return ret
+	return d.DriftByStandardDeviation(ops, coords...)
 }
 
-func (d *Drift) _DriftByStandardDeviation(ops *DriftOption, coords ...TrackPointer) []TrackPointer {
+func (d *Drift) DriftByStandardDeviation(ops *DriftOption, coords ...TrackPointer) []TrackPointer {
 	_ = ops
 	size := len(coords)
 	if size < 3 {
