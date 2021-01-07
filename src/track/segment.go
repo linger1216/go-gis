@@ -1,8 +1,7 @@
 package track
 
 import (
-	"github.com/linger1216/go-gis/model/geom"
-	"github.com/linger1216/go-gis/model/hub"
+	"github.com/linger1216/go-gis/src/geom"
 )
 
 const (
@@ -21,10 +20,10 @@ func NewSegment() *Segment {
 	return &Segment{}
 }
 
-func (d *Segment) SegmentByInterval(ops *SegmentOption, coords ...hub.TrackPointer) [][]hub.TrackPointer {
+func (d *Segment) SegmentByInterval(ops *SegmentOption, coords ...TrackPointer) [][]TrackPointer {
 	size := len(coords)
-	ret := make([][]hub.TrackPointer, 0)
-	ret = append(ret, []hub.TrackPointer{})
+	ret := make([][]TrackPointer, 0)
+	ret = append(ret, []TrackPointer{})
 	lastInterval := int64(0)
 	lastPos := 0
 	i := lastPos + 1
@@ -34,7 +33,7 @@ func (d *Segment) SegmentByInterval(ops *SegmentOption, coords ...hub.TrackPoint
 			ret[len(ret)-1] = append(ret[len(ret)-1], coords[lastPos:i]...)
 			lastInterval = 0
 			lastPos = i
-			ret = append(ret, []hub.TrackPointer{})
+			ret = append(ret, []TrackPointer{})
 			continue
 		}
 		lastInterval = interval
@@ -46,10 +45,10 @@ func (d *Segment) SegmentByInterval(ops *SegmentOption, coords ...hub.TrackPoint
 	return ret
 }
 
-func (d *Segment) SegmentByDist(ops *SegmentOption, coords ...hub.TrackPointer) [][]hub.TrackPointer {
+func (d *Segment) SegmentByDist(ops *SegmentOption, coords ...TrackPointer) [][]TrackPointer {
 	size := len(coords)
-	ret := make([][]hub.TrackPointer, 0)
-	ret = append(ret, []hub.TrackPointer{})
+	ret := make([][]TrackPointer, 0)
+	ret = append(ret, []TrackPointer{})
 	lastDist := float64(0)
 	lastPos := 0
 	i := lastPos + 1
@@ -60,7 +59,7 @@ func (d *Segment) SegmentByDist(ops *SegmentOption, coords ...hub.TrackPointer) 
 			ret[len(ret)-1] = append(ret[len(ret)-1], coords[lastPos:i+1]...)
 			lastDist = 0
 			lastPos = i + 1
-			ret = append(ret, []hub.TrackPointer{})
+			ret = append(ret, []TrackPointer{})
 			continue
 		}
 		lastDist = dist

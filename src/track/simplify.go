@@ -1,10 +1,5 @@
 package track
 
-import (
-	"github.com/linger1216/go-gis/model/hub"
-	"github.com/linger1216/go-gis/src/algo"
-)
-
 /*
 *
 Simplify 使用dp算法进行抽稀
@@ -31,8 +26,8 @@ func NewSimplify() *Simplify {
 	return &Simplify{}
 }
 
-func (d *Simplify) Exec(ops *SimplifyOption, coords ...hub.TrackPointer) []hub.TrackPointer {
-	return algo.DouglasPeucker(d._transEpsilon(int(ops.Degree)), coords...)
+func (d *Simplify) Exec(ops *SimplifyOption, coords ...TrackPointer) []TrackPointer {
+	return DouglasPeucker(d._transEpsilon(int(ops.Degree)), coords...)
 }
 
 func (d *Simplify) _transEpsilon(level int) float64 {

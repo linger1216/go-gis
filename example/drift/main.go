@@ -4,8 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/go-echarts/go-echarts/v2/components"
-	"github.com/linger1216/go-gis/model/geom"
-	"github.com/linger1216/go-gis/model/hub"
+	"github.com/linger1216/go-gis/src/geom"
 	"github.com/linger1216/go-gis/src/track"
 	"github.com/linger1216/go-gis/src/visualizer"
 	"github.com/linger1216/go-utils/convert"
@@ -55,7 +54,7 @@ func main() {
 
 	_ = f.Close()
 
-	points := make([]hub.TrackPointer, len(xys))
+	points := make([]track.TrackPointer, len(xys))
 	for i := range xys {
 		points[i] = xys[i]
 	}

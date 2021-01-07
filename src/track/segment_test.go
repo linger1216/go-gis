@@ -2,12 +2,11 @@ package track
 
 import (
 	"fmt"
-	"github.com/linger1216/go-gis/model/hub"
 	"reflect"
 	"testing"
 )
 
-func p(x [][]hub.TrackPointer) {
+func p(x [][]TrackPointer) {
 	for _, arr := range x {
 		for _, v := range arr {
 			fmt.Printf("%d ", v.Timestamp())
@@ -19,21 +18,21 @@ func p(x [][]hub.TrackPointer) {
 func TestSegment__segmentByInterval(t *testing.T) {
 	tests := []struct {
 		name string
-		args []hub.TrackPointer
+		args []TrackPointer
 		want int
 	}{
 
 		{
-			args: []hub.TrackPointer{
-				hub.NewTrackPoint("1", 1, 131, 31),
-				hub.NewTrackPoint("1", 2, 131, 31),
-				hub.NewTrackPoint("1", 3, 131, 31),
-				hub.NewTrackPoint("1", 11, 131, 31),
-				hub.NewTrackPoint("1", 13, 131, 31),
-				hub.NewTrackPoint("1", 15, 131, 31),
-				hub.NewTrackPoint("1", 21, 131, 31),
-				hub.NewTrackPoint("1", 25, 131, 31),
-				hub.NewTrackPoint("1", 30, 131, 31),
+			args: []TrackPointer{
+				NewTrackPoint("1", 1, 131, 31),
+				NewTrackPoint("1", 2, 131, 31),
+				NewTrackPoint("1", 3, 131, 31),
+				NewTrackPoint("1", 11, 131, 31),
+				NewTrackPoint("1", 13, 131, 31),
+				NewTrackPoint("1", 15, 131, 31),
+				NewTrackPoint("1", 21, 131, 31),
+				NewTrackPoint("1", 25, 131, 31),
+				NewTrackPoint("1", 30, 131, 31),
 			},
 			want: 3,
 		},

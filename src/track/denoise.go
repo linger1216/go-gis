@@ -2,9 +2,8 @@ package track
 
 import (
 	"fmt"
-	"github.com/linger1216/go-gis/model/geom"
-	"github.com/linger1216/go-gis/model/hub"
 	"github.com/linger1216/go-gis/src/algo"
+	"github.com/linger1216/go-gis/src/geom"
 	"gonum.org/v1/gonum/mat"
 	"math"
 )
@@ -47,8 +46,8 @@ func NewNormalDenoise() *NormalDenoise {
 	return &NormalDenoise{kf: kf}
 }
 
-func (d *NormalDenoise) Exec(ops *DenoiseOption, coords ...hub.TrackPointer) []hub.TrackPointer {
-	ret := make([]hub.TrackPointer, 0, len(coords))
+func (d *NormalDenoise) Exec(ops *DenoiseOption, coords ...TrackPointer) []TrackPointer {
+	ret := make([]TrackPointer, 0, len(coords))
 	tracks := d._part(coords...)
 	for i := range tracks {
 		if points := d._predict(ops, tracks[i]...); len(points) > 0 {
@@ -58,7 +57,7 @@ func (d *NormalDenoise) Exec(ops *DenoiseOption, coords ...hub.TrackPointer) []h
 	return ret
 }
 
-func (d *NormalDenoise) _part(coords ...hub.TrackPointer) [][]hub.TrackPointer {
+func (d *NormalDenoise) _part(coords ...TrackPointer) [][]TrackPointer {
 
 	m := make(map[int64]int64)
 	lastTime := int64(0)
@@ -74,7 +73,7 @@ func (d *NormalDenoise) _part(coords ...hub.TrackPointer) [][]hub.TrackPointer {
 
 	// has no timestamp
 	if len(m) == 0 {
-		return [][]hub.TrackPointer{coords}
+		return [][]TrackPointer{coords}
 	}
 
 	maxKey := int64(0)
@@ -89,15 +88,15 @@ func (d *NormalDenoise) _part(coords ...hub.TrackPointer) [][]hub.TrackPointer {
 
 	lastTime = 0
 	maxDist := maxKey
-	ret := make([][]hub.TrackPointer, 0)
-	ret = append(ret, []hub.TrackPointer{})
+	ret := make([][]TrackPointer, 0)
+	ret = append(ret, []TrackPointer{})
 	for i := range coords {
 		if lastTime == 0 {
 			lastTime = coords[i].Timestamp()
 		} else {
 			dist := coords[i].Timestamp() - lastTime
 			if dist > maxDist {
-				ret = append(ret, []hub.TrackPointer{})
+				ret = append(ret, []TrackPointer{})
 			}
 			ret[len(ret)-1] = append(ret[len(ret)-1], coords[i])
 			lastTime = coords[i].Timestamp()
@@ -132,7 +131,7 @@ func (d *NormalDenoise) _transEpsilon(level int) (float64, float64) {
 	}
 }
 
-func (d *NormalDenoise) _predict(ops *DenoiseOption, coords ...hub.TrackPointer) []hub.TrackPointer {
+func (d *NormalDenoise) _predict(ops *DenoiseOption, coords ...TrackPointer) []TrackPointer {
 	Q, R := d._transEpsilon(int(ops.Degree))
 	if Q < 0 {
 		//d.kf.ProcessNoiseCov = mat.NewDiagonalRect(4, 4, algo.MakeMatValue(4, 1, 0))
@@ -168,11 +167,11 @@ func (d *NormalDenoise) _predict(ops *DenoiseOption, coords ...hub.TrackPointer)
 	return d.__predict(coords...)
 }
 
-func (d *NormalDenoise) __predict(coords ...hub.TrackPointer) []hub.TrackPointer {
+func (d *NormalDenoise) __predict(coords ...TrackPointer) []TrackPointer {
 	if len(coords) > 0 {
 		d.kf.StatePost = mat.NewDense(4, 1, []float64{coords[0].Point().Latitude, coords[0].Point().Longitude, 0, 0})
 	}
-	kfPoints := make([]hub.TrackPointer, 0)
+	kfPoints := make([]TrackPointer, 0)
 	for i := 0; i < len(coords); i++ {
 		prediction := d.kf.Predict(nil)
 		p := geom.NewLngLat(prediction.At(1, 0), prediction.At(0, 0))

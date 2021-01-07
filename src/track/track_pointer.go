@@ -1,7 +1,7 @@
-package hub
+package track
 
 import (
-	"github.com/linger1216/go-gis/model/geom"
+	"github.com/linger1216/go-gis/src/geom"
 )
 
 type TrackPointer interface {

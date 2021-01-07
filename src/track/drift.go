@@ -1,8 +1,7 @@
 package track
 
 import (
-	"github.com/linger1216/go-gis/model/geom"
-	"github.com/linger1216/go-gis/model/hub"
+	"github.com/linger1216/go-gis/src/geom"
 	"math"
 )
 
@@ -23,13 +22,13 @@ func NewDrift() *Drift {
 	return &Drift{}
 }
 
-func (d *Drift) Exec(ops *DriftOption, coords ...hub.TrackPointer) []hub.TrackPointer {
+func (d *Drift) Exec(ops *DriftOption, coords ...TrackPointer) []TrackPointer {
 
 	if ops == nil {
 		ops = &DriftOption{NoSegment}
 	}
 
-	var arr [][]hub.TrackPointer
+	var arr [][]TrackPointer
 
 	switch ops.SegmentPolicy {
 	case SegmentPolicyByDist:
@@ -40,7 +39,7 @@ func (d *Drift) Exec(ops *DriftOption, coords ...hub.TrackPointer) []hub.TrackPo
 		arr = append(arr, coords)
 	}
 
-	ret := make([]hub.TrackPointer, 0, len(coords))
+	ret := make([]TrackPointer, 0, len(coords))
 	for i := range arr {
 		if v := d._DriftByStandardDeviation(ops, arr[i]...); len(v) > 0 {
 			if len(v) == 2 {
@@ -53,7 +52,7 @@ func (d *Drift) Exec(ops *DriftOption, coords ...hub.TrackPointer) []hub.TrackPo
 	return ret
 }
 
-func (d *Drift) _DriftByStandardDeviation(ops *DriftOption, coords ...hub.TrackPointer) []hub.TrackPointer {
+func (d *Drift) _DriftByStandardDeviation(ops *DriftOption, coords ...TrackPointer) []TrackPointer {
 	_ = ops
 	size := len(coords)
 	if size < 3 {
@@ -132,13 +131,13 @@ func (d *Drift) _DriftByStandardDeviation(ops *DriftOption, coords ...hub.TrackP
 				maxIndex = i
 			}
 		}
-		ret := make([]hub.TrackPointer, 0, 3)
+		ret := make([]TrackPointer, 0, 3)
 		ret = append(ret, coords[0:maxIndex]...)
 		ret = append(ret, coords[maxIndex+1:]...)
 		return ret
 	}
 
-	ret := make([]hub.TrackPointer, 0, size)
+	ret := make([]TrackPointer, 0, size)
 	ret = append(ret, coords[0])
 	for i := 1; i < size; i++ {
 		if dists[i]-avg <= standardDeviation {

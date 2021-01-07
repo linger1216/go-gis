@@ -1,7 +1,6 @@
 package track
 
 import (
-	"github.com/linger1216/go-gis/model/hub"
 	"reflect"
 	"testing"
 )
@@ -9,21 +8,21 @@ import (
 func TestDrift__DriftByStandardDeviation(t *testing.T) {
 	tests := []struct {
 		name string
-		args []hub.TrackPointer
+		args []TrackPointer
 		want int
 	}{
 
 		{
-			args: []hub.TrackPointer{
-				hub.NewTrackPoint("1", 1, 0, 0),
-				hub.NewTrackPoint("1", 1, 1, 1),
-				hub.NewTrackPoint("1", 1, 2, 2),
-				hub.NewTrackPoint("1", 1, 10, 2),
-				hub.NewTrackPoint("1", 1, 4, 4),
-				hub.NewTrackPoint("1", 1, 4, 5),
-				hub.NewTrackPoint("1", 1, 5, 6),
-				hub.NewTrackPoint("1", 1, 7, 7),
-				hub.NewTrackPoint("1", 1, 6, 8),
+			args: []TrackPointer{
+				NewTrackPoint("1", 1, 0, 0),
+				NewTrackPoint("1", 1, 1, 1),
+				NewTrackPoint("1", 1, 2, 2),
+				NewTrackPoint("1", 1, 10, 2),
+				NewTrackPoint("1", 1, 4, 4),
+				NewTrackPoint("1", 1, 4, 5),
+				NewTrackPoint("1", 1, 5, 6),
+				NewTrackPoint("1", 1, 7, 7),
+				NewTrackPoint("1", 1, 6, 8),
 			},
 			want: 3,
 		},

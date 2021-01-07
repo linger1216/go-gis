@@ -1,7 +1,6 @@
-package algo
+package track
 
 import (
-	"github.com/linger1216/go-gis/model/hub"
 	"github.com/linger1216/go-utils/algorithm"
 	"math"
 )
@@ -13,7 +12,7 @@ import (
 // 公式:
 // https://zhuanlan.zhihu.com/p/26307123
 // https://baike.baidu.com/item/%E4%B8%A4%E7%82%B9%E5%BC%8F
-func _perpendicularDistance(p, p1, p2 hub.TrackPointer) (result float64) {
+func _perpendicularDistance(p, p1, p2 TrackPointer) (result float64) {
 	if p1.Point().Latitude == p2.Point().Latitude {
 		result = math.Abs(p.Point().Latitude - p1.Point().Latitude)
 	} else {
@@ -40,7 +39,7 @@ degress:7 total:937 current:29
 *
 */
 
-func DouglasPeuckerRecursion(epsilon float64, coords ...hub.TrackPointer) []hub.TrackPointer {
+func DouglasPeuckerRecursion(epsilon float64, coords ...TrackPointer) []TrackPointer {
 	if len(coords) < 3 {
 		return coords
 	}
@@ -63,13 +62,13 @@ func DouglasPeuckerRecursion(epsilon float64, coords ...hub.TrackPointer) []hub.
 		rs := append(r1[0:len(r1)-1], r2...)
 		return rs
 	} else {
-		ret := make([]hub.TrackPointer, 0)
+		ret := make([]TrackPointer, 0)
 		ret = append(ret, firstPoint, lastPoint)
 		return ret
 	}
 }
 
-func DouglasPeucker(epsilon float64, coords ...hub.TrackPointer) []hub.TrackPointer {
+func DouglasPeucker(epsilon float64, coords ...TrackPointer) []TrackPointer {
 	if len(coords) < 3 {
 		return coords
 	}
@@ -113,7 +112,7 @@ func DouglasPeucker(epsilon float64, coords ...hub.TrackPointer) []hub.TrackPoin
 			stack.Push(last)
 		}
 	}
-	ret := make([]hub.TrackPointer, 0, size)
+	ret := make([]TrackPointer, 0, size)
 	for i = 0; i < size; i++ {
 		if markers[i] > 0 {
 			ret = append(ret, coords[i])

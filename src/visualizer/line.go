@@ -5,10 +5,10 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/opts"
-	"github.com/linger1216/go-gis/model/hub"
+	"github.com/linger1216/go-gis/src/track"
 )
 
-func generateLineItems(coords ...hub.TrackPointer) []opts.LineData {
+func generateLineItems(coords ...track.TrackPointer) []opts.LineData {
 	data := make([]opts.LineData, len(coords))
 	for i := range coords {
 		data[i] = opts.LineData{
@@ -20,7 +20,7 @@ func generateLineItems(coords ...hub.TrackPointer) []opts.LineData {
 	return data
 }
 
-func DrawLine(width, height int, title string, coords ...[]hub.TrackPointer) components.Charter {
+func DrawLine(width, height int, title string, coords ...[]track.TrackPointer) components.Charter {
 
 	if width == 0 {
 		width = 1800
@@ -30,7 +30,7 @@ func DrawLine(width, height int, title string, coords ...[]hub.TrackPointer) com
 		height = 900
 	}
 
-	box := hub.BoundingRect(coords...)
+	box := track.BoundingRect(coords...)
 	lngMin := box.LeftBottom.Longitude
 	lngMax := box.RightTop.Longitude
 	latMin := box.LeftBottom.Latitude
